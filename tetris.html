@@ -3,6 +3,8 @@
   <body>
     <canvas id="can"></canvas>
     <script>
+      const GAME_SPEED = 300;
+
       const FIELD_COL = 10;
       const FIELD_ROW = 20;
 
@@ -20,17 +22,80 @@
       can.height       = SCREEN_H;
       can.style.border = "4px solid #555";
 
-      let tetro =[
-        [0,0,0,0],
-        [1,1,0,0],
-        [0,1,1,0],
-        [0,0,0,0]
+      const TETRO_COLORS =[
+        "#000",
+        "#6CF",
+        "#F92",
+        "#66F",
+        "#C5C",
+        "#FD2",
+        "#F44",
+        "#5B5"
       ];
 
-      let tetro_x = 0;
-      let tetro_y = 0;
+      const TETRO_TYPES = [
+        [],
+        [
+          [0,0,0,0],
+          [1,1,1,1],
+          [0,0,0,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,1,0,0],
+          [0,1,0,0],
+          [0,1,1,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,0,1,0],
+          [0,0,1,0],
+          [0,1,1,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,1,0,0],
+          [0,1,1,0],
+          [0,1,0,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,0,0,0],
+          [0,1,1,0],
+          [0,1,1,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,0,0,0],
+          [1,1,0,0],
+          [0,1,1,0],
+          [0,0,0,0]
+        ],
+        [
+          [0,0,0,0],
+          [0,1,1,0],
+          [1,1,0,0],
+          [0,0,0,0]
+        ]
+      ]
+
+      const START_X = FIELD_COL/2 -TETRO_SIZE/2
+      const START_Y = 0;
+
+      let tetro;
+
+      let tetro_x = START_X;
+      let tetro_y = START_Y;
 
       let field =[];
+
+      tetro_t = Math.floor( Math.random() * (TETRO_TYPES.length-1) )+1;
+      tetro = TETRO_TYPES[tetro_t];
+
+      init();
+      drawAll();
+
+      setInterval( dropTetro, GAME_SPEED );
 
       function init(){
         for(let y=0; y<FIELD_ROW; y++){
@@ -42,15 +107,11 @@
         field[5][8] = 1;
       }
 
-
-      init();
-      drawAll();
-
-      function drawBlock(x, y){
+      function drawBlock(x, y, c){
         let px = x * BLOCK_SIZE;
         let py = y * BLOCK_SIZE;
 
-        con.fillStyle="red";
+        con.fillStyle=TETRO_COLORS[c];
         con.fillRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
         con.strokeStyle="black";
         con.strokeRect(px, py, BLOCK_SIZE, BLOCK_SIZE);
@@ -61,7 +122,7 @@
         for(let y=0; y<FIELD_ROW; y++){
           for(let x=0; x<FIELD_COL; x++){
             if( field[y][x]){
-              drawBlock(x, y);
+              drawBlock(x, y, field[y][x]);
             }
           }
         }
@@ -69,7 +130,7 @@
         for(let y=0; y<TETRO_SIZE; y++){
           for(let x=0; x<TETRO_SIZE; x++){
             if( tetro[y][x]){
-              drawBlock(tetro_x + x, tetro_y + y);
+              drawBlock(tetro_x + x, tetro_y + y, tetro_t );
             }
           }
         }
@@ -106,6 +167,30 @@
         }
 
         return newtetro;
+      }
+
+      function fixTetro(){
+        for(let y=0; y<TETRO_SIZE; y++){
+          for(let x=0; x<TETRO_SIZE; x++){
+            if( tetro[y][x] ){
+              field[tetro_y + y][tetro_x + x] = tetro_t;
+            }
+          }
+        }
+      }
+
+      function dropTetro(){
+        if( checkMove( 0, 1 ) )
+          tetro_y++;
+        else
+        {
+          fixTetro();
+          tetro_t = Math.floor( Math.random() * (TETRO_TYPES.length-1) )+1;
+          tetro = TETRO_TYPES[tetro_t];
+          tetro_x = START_X;
+          tetro_y = START_Y;
+        }
+        drawAll();
       }
 
       document.onkeydown = function(e){
